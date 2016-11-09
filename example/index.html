@@ -3,9 +3,8 @@
   <head>
     <title>Auth0.js Demo Examples</title>
     <link rel="stylesheet" type="text/css" href="//cdn.auth0.com/styleguide/1/index.css">
-    <script src="/webpack-dev-server.js"></script>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-    <script src="/auth0.js"></script>
+    <script src="auth0.min.js"></script>
     <style>
       .row {
         margin:10px 0;
@@ -116,7 +115,7 @@
 
     var webAuth = new auth0.WebAuth({
       domain: 'auth0-tests-auth0js.auth0.com',
-      redirect_uri: 'http://localhost:3000/example',
+      redirect_uri: 'http://auth0.github.io/auth0.js/example',
       client_id: '3GGMIEuBPZ28lb6NBDNARaEZisqFakAs',
       response_type: 'token'
     });
@@ -151,27 +150,27 @@
 
     $('.login-facebook').click(function (e) {
       e.preventDefault();
-      webAuth.redirect.authorize({ connection: 'facebook' });
+      webAuth.redirect.authorize({ connection: 'facebook', scope: 'openid' });
     });
 
     $('.login-twitter').click(function (e) {
       e.preventDefault();
-      webAuth.redirect.authorize({ connection: 'twitter' });
+      webAuth.redirect.authorize({ connection: 'twitter', scope: 'openid' });
     });
 
     $('.login-github').click(function (e) {
       e.preventDefault();
-      webAuth.redirect.authorize({ connection: 'github' });
+      webAuth.redirect.authorize({ connection: 'github', scope: 'openid' });
     });
 
     $('.logout').click(function (e) {
       e.preventDefault();
-      webAuth.redirect.logout({ returnTo: 'http://localhost:3000/example' });
+      webAuth.redirect.logout({ returnTo: 'http://auth0.github.io/auth0.js/example' });
     });
 
     $('.renew-auth').click(function (e) {
       e.preventDefault();
-      webAuth.renewAuth({usePostMessage: true, redirect_uri: 'http://localhost:3000/example/callback.html'}, function (err, data) {
+      webAuth.renewAuth({usePostMessage: true, redirect_uri: 'http://auth0.github.io/auth0.js/example/callback.html'}, function (err, data) {
           if (err) {
             htmlConsole.dump(err, 'error');
           } else {
