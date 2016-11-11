@@ -81,6 +81,7 @@
           <input class="login-username" value="johnfoo@gmail.com" />
           <input type="password" class="login-password" value="1234" />
           <input type="button" class="login-db" value="login" />
+          <input type="button" class="login-db-code" value="login (response type code)" />
         </div>
 
         <div>
@@ -143,6 +144,19 @@
         username: $('.login-username').val(),
         password: $('.login-password').val(),
         scope: 'openid'
+      }, function (err) {
+        htmlConsole.dump({err: err, data: data}, 'error');
+      });
+    });
+
+    $('.login-db-code').click(function (e) {
+      e.preventDefault();
+      webAuth.redirect.login({
+        connection: 'tests',
+        username: $('.login-username').val(),
+        password: $('.login-password').val(),
+        scope: 'openid',
+        response_type: 'code'
       }, function (err) {
         htmlConsole.dump({err: err, data: data}, 'error');
       });
