@@ -201,11 +201,15 @@ WebAuth.prototype.renewAuth = function (options, cb) {
     }
 
     if (data.id_token) {
-      prof = _this.validateToken(data.id_token, options.state);
-      if (prof.error) {
-        cb(prof);
-      }
-      data.idTokenPayload = prof;
+      return this.validateToken(data.id_token, options.state, null, function (err, payload) {
+        if (err) {
+          return cb(err);
+        }
+
+        data.idTokenPayload = payload;
+
+        return cb(null, data);
+      });
     }
 
     return cb(err, data);
