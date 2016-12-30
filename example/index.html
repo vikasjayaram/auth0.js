@@ -170,10 +170,11 @@
       domain: 'auth0-tests-auth0js.auth0.com',
       redirectUri: 'http://localhost:3000/example',
       clientID: '3GGMIEuBPZ28lb6NBDNARaEZisqFakAs',
-      responseType: 'id_token token'
+      audience: 'https://auth0-tests-auth0js.auth0.com/userinfo',
+      responseType: 'token'
     });
 
-    webAuth.parseHash(function(err, data) {console.log(err, data);
+    webAuth.parseHash(function(err, data) {
       if (err) {
         return htmlConsole.dumpCallback(err);
       }
@@ -287,7 +288,7 @@
       e.preventDefault();
       webAuth.renewAuth({
         usePostMessage: true,
-        scope: 'openid',
+        scope:'',
         audience: 'https://auth0-tests-auth0js.auth0.com/userinfo',
         redirectURI: 'http://localhost:3000/example/callback.html'
       },
