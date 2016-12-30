@@ -62,17 +62,23 @@ function WebAuth(options) {
  * @param {String} hash: the url hash or null to automatically extract from window.location.hash
  * @param {Object} options: state and nonce can be provided to verify the response
  */
-WebAuth.prototype.parseHash = function (hash, options, cb) {
+WebAuth.prototype.parseHash = function (options, cb) {
   var parsedQs;
   var err;
   var token;
 
+  if (!cb && typeof options === 'function') {
+    cb = options;
+    options = {};
+  } else {
+    options = options || {};
+  }
+
   var _window = windowHelper.getWindow();
 
-  var hashStr = hash || _window.location.hash;
+  var hashStr = options.hash || _window.location.hash;
   hashStr = hashStr.replace(/^#?\/?/, '');
 
-  options = options || {};
 
   parsedQs = qs.parse(hashStr);
 
@@ -83,7 +89,7 @@ WebAuth.prototype.parseHash = function (hash, options, cb) {
       err.state = parsedQs.state;
     }
 
-    return err;
+    cb(err);
   }
 
   if (!parsedQs.hasOwnProperty('access_token')
@@ -98,30 +104,25 @@ WebAuth.prototype.parseHash = function (hash, options, cb) {
         return cb(err);
       }
 
-      cb({
-        accessToken: parsedQs.access_token || null,
-        idToken: parsedQs.id_token || null,
-        idTokenPayload: response && response.payload ? response.payload : null,
-        appStatus: response ? response.appStatus || null : null,
-        refreshToken: parsedQs.refresh_token || null,
-        state: parsedQs.state || null,
-        expiresIn: parsedQs.expires_in || null,
-        tokenType: parsedQs.token_type || null
-      });
+      return cb(null, buildParseHashResponse(parsedQs, response));
     });
+  } else {
+    cb(null, buildParseHashResponse(parsedQs, null));
   }
+};
 
-  cb({
-    accessToken: parsedQs.access_token || null,
-    idToken: parsedQs.id_token || null,
+function buildParseHashResponse(qs, token) {
+  return {
+    accessToken: qs.access_token || null,
+    idToken: qs.id_token || null,
     idTokenPayload: token && token.payload ? token.payload : null,
     appStatus: token ? token.appStatus || null : null,
-    refreshToken: parsedQs.refresh_token || null,
-    state: parsedQs.state || null,
-    expiresIn: parsedQs.expires_in || null,
-    tokenType: parsedQs.token_type || null
-  });
-};
+    refreshToken: qs.refresh_token || null,
+    state: qs.state || null,
+    expiresIn: qs.expires_in || null,
+    tokenType: qs.token_type || null
+  };
+}
 
 /**
  * Decodes the id_token and verifies  the nonce.
@@ -138,7 +139,7 @@ WebAuth.prototype.validateToken = function (token, state, nonce, cb) {
   var tokenNonce;
 
   transaction = this.transactionManager.getStoredTransaction(state);
-  transactionNonce = (transaction && transaction.nonce) || nonce;
+  transactionNonce = (transaction && transaction.nonce) || nonce || null;
 
   var verifier = new IdTokenVerifier({
     issuer: 'https://' +  this.baseOptions.domain + '/',
