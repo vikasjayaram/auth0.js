@@ -151,8 +151,8 @@ WebAuth.prototype.validateToken = function (token, state, nonce, cb) {
       return cb(error.invalidJwt(err.message));
     }
 
-    cb({
-      payload: prof,
+    cb(null, {
+      payload: payload,
       transaction: transaction
     });
   });
