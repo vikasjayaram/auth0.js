@@ -59,8 +59,11 @@ function WebAuth(options) {
  * Parse the url hash and extract the access token or id token depending on the transaction.
  *
  * @method parseHash
- * @param {String} hash: the url hash or null to automatically extract from window.location.hash
- * @param {Object} options: state and nonce can be provided to verify the response
+ * @param {Object} options:
+ * @param {String} options.state [OPTIONAL] to verify the response
+ * @param {String} options.nonce [OPTIONAL] to verify the id_token
+ * @param {String} options.hash [OPTIONAL] the url hash. If not provided it will extract from window.location.hash
+ * @param {Function} cb: function(err, token_payload)
  */
 WebAuth.prototype.parseHash = function (options, cb) {
   var parsedQs;
@@ -131,6 +134,7 @@ function buildParseHashResponse(qs, token) {
  * @param {String} token
  * @param {String} state
  * @param {String} nonce
+ * @param {Function} cb: function(err, {payload, transaction})
  */
 WebAuth.prototype.validateToken = function (token, state, nonce, cb) {
   var audiences;
