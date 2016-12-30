@@ -147,7 +147,8 @@ WebAuth.prototype.validateToken = function (token, state, nonce, cb) {
 
   var verifier = new IdTokenVerifier({
     issuer: 'https://' +  this.baseOptions.domain + '/',
-    audience: this.baseOptions.clientID
+    audience: this.baseOptions.clientID,
+    __disableExpirationCheck: this.baseOptions.__disableExpirationCheck
   });
 
   verifier.verify(token, transactionNonce, function (err, payload) {
@@ -205,7 +206,7 @@ WebAuth.prototype.renewAuth = function (options, cb) {
     }
 
     if (data.id_token) {
-      return this.validateToken(data.id_token, options.state, null, function (err, payload) {
+      return _this.validateToken(data.id_token, options.state, null, function (err, payload) {
         if (err) {
           return cb(err);
         }
