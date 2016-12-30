@@ -1,3 +1,5 @@
+var IdTokenVerifier = require('idtoken-verifier');
+
 var assert = require('../helper/assert');
 var error = require('../helper/error');
 var jwt = require('../helper/jwt');
@@ -60,7 +62,7 @@ function WebAuth(options) {
  * @param {String} hash: the url hash or null to automatically extract from window.location.hash
  * @param {Object} options: state and nonce can be provided to verify the response
  */
-WebAuth.prototype.parseHash = function (hash, options) {
+WebAuth.prototype.parseHash = function (hash, options, cb) {
   var parsedQs;
   var err;
   var token;
@@ -91,13 +93,25 @@ WebAuth.prototype.parseHash = function (hash, options) {
   }
 
   if (parsedQs.id_token) {
-    token = this.validateToken(parsedQs.id_token, parsedQs.state || options.state, options.nonce);
-    if (token.error) {
-      return token;
-    }
+    this.validateToken(parsedQs.id_token, parsedQs.state || options.state, options.nonce, function (err, response) {
+      if (err) {
+        return cb(err);
+      }
+
+      cb({
+        accessToken: parsedQs.access_token || null,
+        idToken: parsedQs.id_token || null,
+        idTokenPayload: response && response.payload ? response.payload : null,
+        appStatus: response ? response.appStatus || null : null,
+        refreshToken: parsedQs.refresh_token || null,
+        state: parsedQs.state || null,
+        expiresIn: parsedQs.expires_in || null,
+        tokenType: parsedQs.token_type || null
+      });
+    });
   }
 
-  return {
+  cb({
     accessToken: parsedQs.access_token || null,
     idToken: parsedQs.id_token || null,
     idTokenPayload: token && token.payload ? token.payload : null,
@@ -106,7 +120,7 @@ WebAuth.prototype.parseHash = function (hash, options) {
     state: parsedQs.state || null,
     expiresIn: parsedQs.expires_in || null,
     tokenType: parsedQs.token_type || null
-  };
+  });
 };
 
 /**
@@ -117,39 +131,30 @@ WebAuth.prototype.parseHash = function (hash, options) {
  * @param {String} state
  * @param {String} nonce
  */
-WebAuth.prototype.validateToken = function (token, state, nonce) {
+WebAuth.prototype.validateToken = function (token, state, nonce, cb) {
   var audiences;
   var transaction;
   var transactionNonce;
   var tokenNonce;
-  var prof = jwt.getPayload(token);
-
-  audiences = assert.isArray(prof.aud) ? prof.aud : [prof.aud];
-  if (audiences.indexOf(this.baseOptions.clientID) === -1) {
-    return error.invalidJwt(
-      'The clientID configured (' + this.baseOptions.clientID + ') does not match ' +
-      'with the clientID set in the token (' + audiences.join(', ') + ').');
-  }
 
   transaction = this.transactionManager.getStoredTransaction(state);
   transactionNonce = (transaction && transaction.nonce) || nonce;
-  tokenNonce = prof.nonce || null;
 
-  if (transactionNonce && tokenNonce && transactionNonce !== tokenNonce) {
-    return error.invalidJwt('Nonce does not match');
-  }
+  var verifier = new IdTokenVerifier({
+    issuer: 'https://' +  this.baseOptions.domain + '/',
+    audience: this.baseOptions.clientID
+  });
 
-  // iss should be the Auth0 domain (i.e.: https://contoso.auth0.com/)
-  if (prof.iss && prof.iss !== 'https://' + this.baseOptions.domain + '/') {
-    return error.invalidJwt(
-      'The domain configured (https://' + this.baseOptions.domain + '/) does not match ' +
-      'with the domain set in the token (' + prof.iss + ').');
-  }
+  verifier.verify(token, transactionNonce, function (err, payload) {
+    if (err) {
+      return cb(error.invalidJwt(err.message));
+    }
 
-  return {
-    payload: prof,
-    transaction: transaction
-  };
+    cb({
+      payload: prof,
+      transaction: transaction
+    });
+  });
 };
 
 /**
