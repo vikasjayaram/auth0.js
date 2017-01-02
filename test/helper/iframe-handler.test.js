@@ -119,7 +119,7 @@ describe('helpers iframeHandler', function () {
       iframeHandler.init();
     });
 
-    it.only('and hook to the load event', function (done) {
+    it('and hook to the load event', function (done) {
 
       var iframe = stubWindow('load');
 
@@ -182,12 +182,13 @@ describe('helpers iframeHandler', function () {
     });
 
     it('and hook to the load event (with invalid hash) should timeout', function (done) {
-      var iframe = stubWindow('load', '#type=invalid_hash&something=else');
+      var iframe = stubWindow('load', '');
 
       var iframeHandler = new IframeHandler({
         auth0: this.auth0,
         url: 'http://example.com',
-        callback: function(err,data){ },
+        callback: function(err,data){
+        },
         timeoutCallback: function(){
           expect(iframe.style).to.eql({ display: 'none' });
           expect(iframe.src).to.be('http://example.com');
