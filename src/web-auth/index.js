@@ -92,13 +92,13 @@ WebAuth.prototype.parseHash = function (options, cb) {
       err.state = parsedQs.state;
     }
 
-    cb(err);
+    return cb(err);
   }
 
   if (!parsedQs.hasOwnProperty('access_token')
        && !parsedQs.hasOwnProperty('id_token')
        && !parsedQs.hasOwnProperty('refresh_token')) {
-    return null;
+    return cb(null, null);
   }
 
   if (parsedQs.id_token) {
@@ -206,7 +206,7 @@ WebAuth.prototype.renewAuth = function (options, cb) {
     }
 
     if (data.id_token) {
-      return _this.validateToken(data.id_token, options.state, null, function (err, payload) {
+      return _this.validateToken(data.id_token, options.state, options.nonce, function (err, payload) {
         if (err) {
           return cb(err);
         }

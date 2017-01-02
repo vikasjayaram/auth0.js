@@ -119,7 +119,7 @@ describe('helpers iframeHandler', function () {
       iframeHandler.init();
     });
 
-    it('and hook to the load event', function (done) {
+    it.only('and hook to the load event', function (done) {
 
       var iframe = stubWindow('load');
 
